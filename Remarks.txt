@@ -1,0 +1,6 @@
+-Soumya
+Made the folder tree, the files are empty, need to make a checklist for all team members to track project progress.
+--
+-Soumya
+The above is the format of our remarks. i also need to add .env to .gitignore by the end days after tests, lets integrate api for now
+--
