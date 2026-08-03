@@ -1,0 +1,8 @@
+{
+  "ai": "cline",
+  "feature_numbering": "sequential",
+  "here": false,
+  "integration": "cline",
+  "script": "py",
+  "speckit_version": "0.15.2.dev0"
+}
