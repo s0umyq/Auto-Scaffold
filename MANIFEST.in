@@ -1,0 +1,3 @@
+include LICENSE
+include README.md
+recursive-include src/auto_scaffold/gui *.html *.css *.js

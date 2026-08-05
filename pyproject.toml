@@ -6,10 +6,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    {name = "Soumya Sandeep Mishra", email = "soumya@example.com"},
-    {name = "Swayam Krishna Sahu", email = "swayam@example.com"},
-    {name = "Gourav Laxmi Sahoo", email = "gourav@example.com"},
-    {name = "Lokesh Kumar Sahu", email = "lokesh@example.com"},
+    {name = "Soumya Sandeep Mishra", email = "srm84762@gmail.com"},
+    {name = "Swayam Krishna Sahu", email = "swayamkrishnasahu@gmail.com"},
+    {name = "Gourav Laxmi Sahoo", email = "sahoogouravlaxmi@gmail.com"},
+    {name = "Lokesh Kumar Sahu", email = "kumarlokeshsahu42@gmail.com"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -53,10 +53,6 @@ auto-scaffold = "auto_scaffold.cli:cli"
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["auto_scaffold*"]
 
 [tool.ruff]
 line-length = 100
