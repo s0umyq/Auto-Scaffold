@@ -25,8 +25,7 @@ AI-powered developer tool that automatically detects a codebase's language, gene
 
 ```bash
 # Clone and install
-git clone <repo-url>
-cd auto-scaffold-cli
+git clone https://github.com/s0umyq/Auto-Scaffold.git
 pip install -e .
 ```
 
