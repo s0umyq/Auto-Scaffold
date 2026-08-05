@@ -16,6 +16,10 @@ from auto_scaffold.provider_router import call_llm
 logger = logging.getLogger(__name__)
 
 
+# Threshold for using deterministic detection vs LLM
+DETECTION_CONFIDENCE_THRESHOLD = 0.8
+
+
 DETECTION_PROMPT = """Analyze this project structure and detect:
 1. Primary programming language
 2. Package manager
@@ -47,7 +51,7 @@ class LanguageDetector:
     async def detect(self) -> LanguageDetectionResult:
         # First, try deterministic detection
         det_result = self._deterministic_detect()
-        if det_result.confidence >= 0.8:
+        if det_result.confidence >= DETECTION_CONFIDENCE_THRESHOLD:
             return det_result
 
         # Fall back to LLM for ambiguous cases

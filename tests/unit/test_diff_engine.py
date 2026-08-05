@@ -1,6 +1,5 @@
 """Tests for diff engine skill."""
 
-import pytest
 from auto_scaffold.skills.diff_engine import generate_diff
 
 
@@ -9,7 +8,7 @@ def test_generate_diff_simple_change():
     original = "def foo():\n    return 1\n"
     proposed = "def foo():\n    return 2\n"
     diff = generate_diff(original, proposed, "test.py")
-    
+
     assert "--- a/test.py" in diff
     assert "+++ b/test.py" in diff
     assert "-    return 1" in diff
@@ -21,7 +20,7 @@ def test_generate_diff_no_change():
     original = "def foo():\n    return 1\n"
     proposed = "def foo():\n    return 1\n"
     diff = generate_diff(original, proposed, "test.py")
-    
+
     # Should have headers but no changes
     assert "--- a/test.py" in diff
     assert "+++ b/test.py" in diff
@@ -32,7 +31,7 @@ def test_generate_diff_multiline():
     original = "def foo():\n    a = 1\n    b = 2\n    return a + b\n"
     proposed = "def foo():\n    x = 10\n    y = 20\n    return x + y\n"
     diff = generate_diff(original, proposed, "test.py")
-    
+
     assert "-    a = 1" in diff
     assert "-    b = 2" in diff
     assert "+    x = 10" in diff

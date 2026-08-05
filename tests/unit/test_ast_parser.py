@@ -1,7 +1,5 @@
 """Tests for AST parser skill."""
 
-import pytest
-from pathlib import Path
 from auto_scaffold.skills.ast_parser import parse_codebase
 
 
@@ -18,14 +16,14 @@ class Greeter:
     def greet(self, name: str) -> str:
         return hello(name)
 """)
-    
+
     summary = parse_codebase(tmp_path)
-    
+
     assert summary.language == "python"
     assert summary.package_manager == "pip"
     assert summary.test_framework == "pytest"
     assert len(summary.files) == 1
-    
+
     file_summary = summary.files[0]
     assert file_summary.path == "src/example.py"
     assert len(file_summary.functions) == 1
@@ -47,9 +45,9 @@ function add(a, b) {
 }
 """)
     (tmp_path / "package.json").write_text("{}")
-    
+
     summary = parse_codebase(tmp_path)
-    
+
     assert summary.language == "javascript"
     assert summary.package_manager == "npm"
     assert summary.test_framework == "vitest"
@@ -66,9 +64,9 @@ function add(a: number, b: number): number {
 """)
     (tmp_path / "package.json").write_text("{}")
     (tmp_path / "tsconfig.json").write_text("{}")
-    
+
     summary = parse_codebase(tmp_path)
-    
+
     assert summary.language == "typescript"
     assert summary.package_manager == "npm"
     assert summary.test_framework == "vitest"

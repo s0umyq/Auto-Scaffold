@@ -6,12 +6,10 @@ Uses core tier (NVIDIA -> OpenRouter) for test logic, planning tier for framewor
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
-from typing import Literal
 
-from auto_scaffold.models import CodebaseSummary, FileSummary, FunctionInfo, ClassInfo
+from auto_scaffold.models import ClassInfo, CodebaseSummary, FileSummary, FunctionInfo
 from auto_scaffold.provider_router import call_llm
 
 logger = logging.getLogger(__name__)
@@ -83,7 +81,7 @@ class TestGenerator:
         classes_desc = self._format_classes(file_summary.classes)
 
         # Get framework-specific idioms from planning tier
-        idioms = await self._get_framework_idioms(summary.language, summary.test_framework)
+        _ = await self._get_framework_idioms(summary.language, summary.test_framework)
 
         prompt = TEST_GEN_PROMPT.format(
             language=summary.language,

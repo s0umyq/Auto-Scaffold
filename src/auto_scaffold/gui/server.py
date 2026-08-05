@@ -4,16 +4,14 @@ GUI — Local web UI for Auto-Scaffold CLI.
 
 from __future__ import annotations
 
-import asyncio
+import contextlib
 import logging
-import os
-import uuid
 from pathlib import Path
 from typing import Any
 
+import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from auto_scaffold.agents.fix_proposer import propose_fixes
@@ -42,10 +40,8 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict[str, Any]) -> None:
         for conn in self.active_connections:
-            try:
+            with contextlib.suppress(Exception):
                 await conn.send_json(message)
-            except Exception:
-                pass
 
 manager = ConnectionManager()
 
@@ -126,7 +122,7 @@ async def api_generate_tests(req: GenerateTestsRequest) -> dict[str, Any]:
         raise HTTPException(404, "Folder not found")
 
     await send_progress("generate", "Detecting language...")
-    lang_result = await detect_language(folder)
+    _ = await detect_language(folder)
 
     await send_progress("generate", "Parsing codebase...")
     summary = parse_codebase(folder)
@@ -272,7 +268,7 @@ async def api_pipeline(req: PipelineRequest) -> dict[str, Any]:
     summary = parse_codebase(folder)
 
     await send_progress("pipeline", "Step 2/6: Generating tests...", {"step": "generate"})
-    generated = await generate_tests(folder, summary)
+    _ = await generate_tests(folder, summary)
 
     await send_progress("pipeline", "Step 3/6: Running tests...", {"step": "run"})
     result = run_tests(folder, lang_result.test_framework)
@@ -332,7 +328,6 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 
 
 def run_gui(host: str = "127.0.0.1", port: int = 8765) -> None:
-    import uvicorn
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 

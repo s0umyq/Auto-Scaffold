@@ -1,8 +1,11 @@
 """Tests for protected paths skill."""
 
-import pytest
+import tempfile
 from pathlib import Path
-from auto_scaffold.skills.protected_paths import assert_not_protected, ProtectedPathError
+
+import pytest
+
+from auto_scaffold.skills.protected_paths import ProtectedPathError, assert_not_protected
 
 
 def test_assert_not_protected_allows_normal_path(tmp_path):
@@ -45,6 +48,5 @@ def test_assert_not_protected_blocks_nested_protected(tmp_path):
 
 def test_assert_not_protected_allows_outside_cwd(tmp_path):
     """Paths outside cwd should be allowed (e.g., temp files)."""
-    import tempfile
     with tempfile.NamedTemporaryFile() as f:
         assert_not_protected(Path(f.name))  # Should not raise

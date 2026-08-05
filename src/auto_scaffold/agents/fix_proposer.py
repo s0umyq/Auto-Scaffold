@@ -14,7 +14,7 @@ from pathlib import Path
 from auto_scaffold.models import FixProposal, TestResult
 from auto_scaffold.provider_router import call_llm
 from auto_scaffold.skills.diff_engine import generate_diff
-from auto_scaffold.skills.protected_paths import assert_not_protected, ProtectedPathError
+from auto_scaffold.skills.protected_paths import ProtectedPathError, assert_not_protected
 
 logger = logging.getLogger(__name__)
 

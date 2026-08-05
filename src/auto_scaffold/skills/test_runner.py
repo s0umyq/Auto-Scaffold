@@ -11,7 +11,6 @@ import logging
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 from auto_scaffold.models import TestResult
 
@@ -65,6 +64,7 @@ class TestRunner:
                 capture_output=True,
                 text=True,
                 timeout=120,
+                check=False,
             )
         except subprocess.TimeoutExpired:
             logger.error("Test command timed out: %s", cmd)

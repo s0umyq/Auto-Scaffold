@@ -9,9 +9,6 @@ from __future__ import annotations
 import ast
 import json
 import logging
-import os
-import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -24,6 +21,19 @@ from auto_scaffold.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Try to import tree-sitter at module level
+try:
+    import tree_sitter_javascript as tsjs
+    import tree_sitter_typescript as tsts
+    from tree_sitter import Language, Parser
+    TREE_SITTER_AVAILABLE = True
+except ImportError:
+    TREE_SITTER_AVAILABLE = False
+    Language = None  # type: ignore
+    Parser = None  # type: ignore
+    tsjs = None  # type: ignore
+    tsts = None  # type: ignore
 
 
 @dataclass
@@ -66,35 +76,40 @@ class ASTParser:
         return "unknown"
 
     def _detect_package_manager(self, language: str) -> str:
-        if (self.root / "pyproject.toml").exists() or (self.root / "requirements.txt").exists():
+        if language == "python":
             return "pip"
+
+        package_manager = "unknown"
         if (self.root / "package.json").exists():
             if (self.root / "pnpm-lock.yaml").exists():
-                return "pnpm"
-            if (self.root / "yarn.lock").exists():
-                return "yarn"
-            return "npm"
-        if (self.root / "Cargo.toml").exists():
-            return "cargo"
-        if (self.root / "go.mod").exists():
-            return "go mod"
-        return "unknown"
+                package_manager = "pnpm"
+            elif (self.root / "yarn.lock").exists():
+                package_manager = "yarn"
+            else:
+                package_manager = "npm"
+        elif (self.root / "Cargo.toml").exists():
+            package_manager = "cargo"
+        elif (self.root / "go.mod").exists():
+            package_manager = "go mod"
+
+        return package_manager
 
     def _detect_test_framework(self, language: str, pm: str) -> str:
         if language == "python":
             return "pytest"
         if language in ("javascript", "typescript"):
+            framework = "vitest"
             if (self.root / "package.json").exists():
                 try:
                     pkg = json.loads((self.root / "package.json").read_text())
                     deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
                     if "vitest" in deps:
-                        return "vitest"
-                    if "jest" in deps:
-                        return "jest"
+                        framework = "vitest"
+                    elif "jest" in deps:
+                        framework = "jest"
                 except Exception:
                     pass
-            return "vitest"
+            return framework
         if language == "go":
             return "go test"
         if language == "rust":
@@ -125,7 +140,8 @@ class ASTParser:
         classes: list[ClassInfo] = []
         imports: list[str] = []
 
-        for node in ast.walk(tree):
+        # Iterate through top-level nodes only
+        for node in tree.body:
             if isinstance(node, ast.FunctionDef):
                 functions.append(FunctionInfo(
                     name=node.name,
@@ -162,7 +178,7 @@ class ASTParser:
                         imports.append(alias.name)
 
         return FileSummary(
-            path=str(rel),
+            path=rel.as_posix(),
             functions=functions,
             classes=classes,
             imports=imports,
@@ -179,9 +195,7 @@ class ASTParser:
         files: list[FileSummary] = []
         syntax_errors: list[str] = []
 
-        try:
-            from tree_sitter import Language, Parser
-        except ImportError:
+        if not TREE_SITTER_AVAILABLE:
             logger.warning("tree-sitter not available, using fallback")
             return self._parse_generic()
 
@@ -199,11 +213,7 @@ class ASTParser:
         return ParserResult(files=files, syntax_errors=syntax_errors)
 
     def _extract_js_ts(self, rel: Path, content: str, lang: str) -> FileSummary:
-        try:
-            from tree_sitter import Language, Parser
-            import tree_sitter_javascript as tsjs
-            import tree_sitter_typescript as tsts
-        except ImportError:
+        if not TREE_SITTER_AVAILABLE:
             return self._extract_generic(rel, content)
 
         parser = Parser()
@@ -259,7 +269,7 @@ class ASTParser:
 
         walk(tree.root_node)
         return FileSummary(
-            path=str(rel),
+            path=rel.as_posix(),
             functions=functions,
             classes=classes,
             imports=imports,
@@ -292,7 +302,7 @@ class ASTParser:
 
     def _extract_generic(self, rel: Path, content: str) -> FileSummary:
         return FileSummary(
-            path=str(rel),
+            path=rel.as_posix(),
             functions=[],
             classes=[],
             imports=[],

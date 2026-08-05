@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Literal
 
 from auto_scaffold.models import FixProposal
-from auto_scaffold.skills.protected_paths import assert_not_protected, ProtectedPathError
+from auto_scaffold.skills.protected_paths import ProtectedPathError, assert_not_protected
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +42,13 @@ class ApprovalGate:
         return proposals
 
     def _prompt_user(self, proposal: FixProposal) -> Literal["approve", "reject", "skip"]:
-        print(f"\n{'='*60}")
-        print(f"Proposal: {proposal.id}")
-        print(f"File: {proposal.target_file}")
-        print(f"Tests addressed: {', '.join(proposal.test_failures_addressed) or 'none'}")
-        print(f"{'='*60}")
-        print(proposal.diff)
-        print(f"{'='*60}")
+        print(f"\n{'='*60}")  # noqa: T201
+        print(f"Proposal: {proposal.id}")  # noqa: T201
+        print(f"File: {proposal.target_file}")  # noqa: T201
+        print(f"Tests addressed: {', '.join(proposal.test_failures_addressed) or 'none'}")  # noqa: T201
+        print(f"{'='*60}")  # noqa: T201
+        print(proposal.diff)  # noqa: T201
+        print(f"{'='*60}")  # noqa: T201
 
         while True:
             choice = input("Approve (a), Reject (r), Skip (s)? ").strip().lower()
@@ -58,7 +58,7 @@ class ApprovalGate:
                 return "reject"
             if choice in ("s", "skip"):
                 return "skip"
-            print("Invalid choice. Enter a, r, or s.")
+            print("Invalid choice. Enter a, r, or s.")  # noqa: T201
 
     def apply_approved(self, proposals: list[FixProposal]) -> list[FixProposal]:
         """Apply approved proposals to their target files."""

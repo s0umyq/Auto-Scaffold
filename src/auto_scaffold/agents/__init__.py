@@ -6,9 +6,9 @@ from auto_scaffold.agents.test_generator import TestGenerator, generate_tests
 
 __all__ = [
     "FixProposer",
-    "propose_fixes",
     "LanguageDetector",
-    "detect_language",
     "TestGenerator",
+    "detect_language",
     "generate_tests",
+    "propose_fixes",
 ]

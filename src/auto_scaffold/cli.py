@@ -76,7 +76,7 @@ def generate_tests_cmd(ctx: click.Context, folder: Path) -> None:
     console.print(f"[bold blue]Generating tests for:[/bold blue] {folder}")
 
     async def _generate() -> None:
-        lang_result = await detect_language(folder)
+        _ = await detect_language(folder)
         summary = parse_codebase(folder)
         generated = await generate_tests(folder, summary)
         console.print(f"Generated [green]{len(generated)}[/green] test files")
