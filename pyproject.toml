@@ -63,10 +63,6 @@ line-length = 100
 target-version = "py311"
 select = ["E", "F", "I", "W", "UP", "B", "C4", "PL", "RUF", "SIM", "T20", "PTH", "ERA"]
 ignore = ["E501", "S101"]
-per-file-ignores = {
-    "tests/*" = ["S101", "ERA001"],
-    "src/auto_scaffold/gui/*" = ["S101"],
-}
 
 [tool.ruff.format]
 quote-style = "double"
