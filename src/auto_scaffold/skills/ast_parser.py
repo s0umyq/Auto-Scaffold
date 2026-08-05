@@ -11,7 +11,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from auto_scaffold.models import (
     ClassInfo,
@@ -135,7 +135,7 @@ class ASTParser:
 
         return ParserResult(files=files, syntax_errors=syntax_errors)
 
-    def _extract_python(self, rel: Path, tree: ast.AST, content: str) -> FileSummary:
+    def _extract_python(self, rel: Path, tree: ast.Module, content: str) -> FileSummary:
         functions: list[FunctionInfo] = []
         classes: list[ClassInfo] = []
         imports: list[str] = []
@@ -218,16 +218,16 @@ class ASTParser:
 
         parser = Parser()
         if lang == "typescript":
-            parser.set_language(Language(tsts.language_typescript()))
+            parser.language = Language(tsts.language_typescript())
         else:
-            parser.set_language(Language(tsjs.language_javascript()))
+            parser.language = Language(tsjs.language())
 
         tree = parser.parse(bytes(content, "utf8"))
         functions: list[FunctionInfo] = []
         classes: list[ClassInfo] = []
         imports: list[str] = []
 
-        def walk(node):
+        def walk(node: Any) -> None:
             if node.type in ("function_declaration", "arrow_function", "function_expression"):
                 name = self._get_js_name(node, content)
                 if name:
@@ -276,13 +276,13 @@ class ASTParser:
             syntax_errors=[],
         )
 
-    def _get_js_name(self, node, content: str) -> str | None:
+    def _get_js_name(self, node: Any, content: str) -> str | None:
         for child in node.children:
             if child.type == "identifier":
                 return content[child.start_byte:child.end_byte]
         return None
 
-    def _get_js_args(self, node, content: str) -> list[str]:
+    def _get_js_args(self, node: Any, content: str) -> list[str]:
         args = []
         for child in node.children:
             if child.type == "formal_parameters":

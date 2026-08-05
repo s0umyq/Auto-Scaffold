@@ -15,7 +15,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 
 import httpx
 from dotenv import load_dotenv
@@ -121,7 +121,7 @@ async def _call_provider(
 
     if provider.name == Provider.GEMINI:
         url = f"{provider.base_url}/models/{provider.model}:generateContent"
-        payload = {
+        payload: dict[str, Any] = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature},
         }
@@ -151,12 +151,12 @@ async def _call_provider(
                     content = candidates[0].get("content", {})
                     parts = content.get("parts", [])
                     if parts:
-                        return parts[0].get("text", "")
+                        return parts[0].get("text", "")  # type: ignore[no-any-return]
             else:
                 choices = data.get("choices", [])
                 if choices:
                     message = choices[0].get("message", {})
-                    return message.get("content", "")
+                    return message.get("content", "")  # type: ignore[no-any-return]
 
     except (httpx.TimeoutException, Exception) as e:
         logger.warning("Provider %s error: %s", provider.name, e)
