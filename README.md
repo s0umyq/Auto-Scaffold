@@ -58,8 +58,14 @@ auto-scaffold review /path/to/project  # Interactive approval
 ### GUI Usage
 
 ```bash
-# Start the web server
-python -m auto_scaffold.gui
+# One-click launcher (Windows)
+start_gui.bat
+
+# Or using Python launcher
+python launch_gui.py
+
+# Or directly via module
+python -m auto_scaffold.gui.server
 # Open http://localhost:8765 in your browser
 ```
 
@@ -144,6 +150,11 @@ auto-scaffold-cli/
 ├── .env.example                 # API key template
 ├── .gitignore
 ├── pyproject.toml
+├── setup.py                     # Setuptools config
+├── setup.cfg                    # Setuptools metadata
+├── MANIFEST.in                  # Source distribution manifest
+├── start_gui.bat                # Windows GUI launcher
+├── launch_gui.py                # Python GUI launcher
 ├── src/auto_scaffold/
 │   ├── __init__.py
 │   ├── cli.py                   # CLI entry point
@@ -161,7 +172,9 @@ auto-scaffold-cli/
 │   │   └── protected_paths.py
 │   └── gui/                     # Web GUI
 │       ├── server.py            # FastAPI + WebSocket
-│       └── index.html           # Vanilla JS frontend
+│       ├── index.html           # Vanilla JS frontend
+│       ├── style.css            # GUI styling
+│       └── app.js               # GUI logic
 └── tests/
     ├── unit/                    # Unit tests (mocked)
     └── e2e/                     # E2E tests (mocked)
