@@ -13,7 +13,7 @@ AI-powered developer tool that automatically detects a codebase's language, gene
 - **Provider Routing** — Tier-based LLM routing with automatic fallback:
   - **Core tier**: NVIDIA Build → OpenRouter
   - **Planning tier**: Gemini Flash → OpenRouter
-- **Local GUI** — FastAPI + vanilla JS web interface at `http://localhost:8765`
+- **Local GUI** — Simple HTTP server + vanilla JS web interface at `http://localhost:8080`
 
 ## Quick Start
 
@@ -64,9 +64,9 @@ start_gui.bat
 # Or using Python launcher
 python launch_gui.py
 
-# Or directly via module
-python -m auto_scaffold.gui.server
-# Open http://localhost:8765 in your browser
+# Or using Python's built-in HTTP server
+python -m http.server 8080 --directory src/auto_scaffold/gui
+# Open http://localhost:8080 in your browser
 ```
 
 ## Architecture
@@ -171,7 +171,6 @@ auto-scaffold-cli/
 │   │   ├── approval_gate.py
 │   │   └── protected_paths.py
 │   └── gui/                     # Web GUI
-│       ├── server.py            # FastAPI + WebSocket
 │       ├── index.html           # Vanilla JS frontend
 │       ├── style.css            # GUI styling
 │       └── app.js               # GUI logic
