@@ -6,6 +6,7 @@ Implements tier-based routing:
 - planning: Gemini Flash (primary) -> OpenRouter (fallback)
 
 Round-robin key rotation per provider. Immediate fallback on 429/5xx.
+Loads API keys from .env file via python-dotenv.
 """
 
 from __future__ import annotations
@@ -17,5 +18,9 @@ from enum import Enum
 from typing import Literal, Optional
 
 import httpx
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
