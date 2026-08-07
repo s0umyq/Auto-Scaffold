@@ -211,5 +211,5 @@ MIT License — see LICENSE file for details.
 
 - **Soumya Sandeep Mishra** — Team Lead, AST Skill, Documentation
 - **Swayam Krishna ** — AI Agent Engineer, Provider Router
-- **Gourav Laxmi ** — CI/CD, Test Runner, Verification
+- **Gourav Laxmi Sahoo** — CI/CD, Test Runner, Verification
 - **Lokesh Kumar Sahu** — Systems Architect, CLI/GUI, Integration
