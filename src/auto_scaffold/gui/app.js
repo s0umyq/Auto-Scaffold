@@ -67,9 +67,6 @@ function getFolder() { return document.getElementById('folder').value.trim(); }
 async function runScan() {
   const folder = getFolder(); if (!folder) return alert('Enter folder path');
   resetSteps(); setButtons(true); abortController = new AbortController();
-  const btnScan = document.getElementById('btnScan');
-  btnScan.disabled = true;
-  btnScan.textContent = '🔍 Scanning...';
   try {
     const res = await api('/api/scan', { folder });
     log(`Language: ${res.language}, PM: ${res.package_manager}, FW: ${res.test_framework}`, 'success');
@@ -79,69 +76,47 @@ async function runScan() {
     document.getElementById('btnPipeline').disabled = false;
   } catch (e) { log(e.message, 'error'); }
   setButtons(false);
-  btnScan.disabled = false;
-  btnScan.textContent = '🔍 Scan Project';
 }
 
 async function runGenerateTests() {
   const folder = getFolder(); if (!folder) return;
   resetSteps(); setButtons(true); abortController = new AbortController();
-  const btn = document.getElementById('btnGenTests');
-  btn.disabled = true;
-  btn.textContent = '🧪 Generating...';
   try {
     await api('/api/generate-tests', { folder });
     log('Tests generated', 'success');
   } catch (e) { log(e.message, 'error'); }
   setButtons(false);
-  btn.disabled = false;
-  btn.textContent = '🧪 Generate Tests';
 }
 
 async function runTests() {
   const folder = getFolder(); if (!folder) return;
   resetSteps(); setButtons(true); abortController = new AbortController();
-  const btn = document.getElementById('btnRunTests');
-  btn.disabled = true;
-  btn.textContent = '▶ Running...';
   try {
     await api('/api/run-tests', { folder });
     log('Tests completed', 'success');
   } catch (e) { log(e.message, 'error'); }
   setButtons(false);
-  btn.disabled = false;
-  btn.textContent = '▶ Run Tests';
 }
 
 async function runPropose() {
   const folder = getFolder(); if (!folder) return;
   resetSteps(); setButtons(true); abortController = new AbortController();
-  const btn = document.getElementById('btnPropose');
-  btn.disabled = true;
-  btn.textContent = '🔧 Proposing...';
   try {
     const res = await api('/api/propose-fixes', { folder });
     log(`${res.approved} approved, ${res.applied} applied`, 'success');
   } catch (e) { log(e.message, 'error'); }
   setButtons(false);
-  btn.disabled = false;
-  btn.textContent = '🔧 Propose Fixes';
 }
 
 async function runPipeline() {
   const folder = getFolder(); if (!folder) return;
   resetSteps(); setButtons(true); currentPipeline = true; abortController = new AbortController();
-  const btn = document.getElementById('btnPipeline');
-  btn.disabled = true;
-  btn.textContent = '⚡ Running...';
   try {
     const res = await api('/api/pipeline', { folder });
     if (res.proposals_count > 0) showProposals(res.proposals, folder);
     else log('All tests pass!', 'success');
   } catch (e) { log(e.message, 'error'); }
   setButtons(false); currentPipeline = false;
-  btn.disabled = false;
-  btn.textContent = '⚡ Full Pipeline';
 }
 
 function showProposals(proposals, folder) {

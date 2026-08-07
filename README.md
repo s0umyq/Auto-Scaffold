@@ -58,18 +58,16 @@ auto-scaffold review /path/to/project  # Interactive approval
 ### GUI Usage
 
 ```bash
-# One-click launcher (Windows) - opens in new terminal window
+# One-click launcher (Windows)
 start_gui.bat
 
-# Or using Python launcher (cross-platform)
+# Or using Python launcher
 python launch_gui.py
 
-# Or directly with uvicorn (FastAPI + WebSocket support)
-python -m uvicorn auto_scaffold.gui.server:app --host 127.0.0.1 --port 8080 --log-level info
-# Open http://127.0.0.1:8080 in your browser
+# Or using Python's built-in HTTP server
+python -m http.server 8080 --directory src/auto_scaffold/gui
+# Open http://localhost:8080 in your browser
 ```
-
-> **Note:** The GUI requires FastAPI + WebSocket support. Simple HTTP servers like `python -m http.server` will **NOT work** - they only serve static files without API endpoints or WebSocket connections.
 
 ## Architecture
 

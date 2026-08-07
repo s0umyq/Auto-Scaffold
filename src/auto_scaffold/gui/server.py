@@ -9,9 +9,9 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from auto_scaffold.agents.fix_proposer import propose_fixes
@@ -24,11 +24,6 @@ from auto_scaffold.skills.test_runner import run_tests
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Auto-Scaffold CLI GUI")
-
-# Mount static files (CSS, JS, etc.)
-# Use robust path resolution that works regardless of working directory
-GUI_DIR = Path(__file__).resolve().parent
-app.mount("/static", StaticFiles(directory=GUI_DIR), name="static")
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -90,7 +85,8 @@ async def send_progress(step: str, message: str, data: dict | None = None) -> No
 # API Routes
 @app.get("/")
 async def index() -> HTMLResponse:
-    html_file = GUI_DIR / "index.html"
+    gui_dir = Path(__file__).parent / "gui"
+    html_file = gui_dir / "index.html"
     if html_file.exists():
         return HTMLResponse(html_file.read_text(encoding="utf-8"))
     return HTMLResponse("<h1>GUI not built</h1>")
@@ -331,9 +327,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         manager.disconnect(websocket)
 
 
-def run_gui(host: str = "127.0.0.1", port: int = 8080) -> None:
-    """Run the GUI server using uvicorn (recommended) or hypercorn."""
-    import uvicorn
+def run_gui(host: str = "127.0.0.1", port: int = 8765) -> None:
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 
