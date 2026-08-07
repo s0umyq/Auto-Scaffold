@@ -1,142 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auto-Scaffold CLI GUI</title>
-  <style>
-    :root {
-      --bg: #0d1117;
-      --panel-bg: #161b22;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --primary: #238636;
-      --primary-hover: #2ea043;
-      --danger: #da3633;
-      --running: #d29922;
-      --blue: #58a6ff;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-    
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-    h1 { font-size: 1.4rem; color: var(--blue); }
-    #connStatus { font-weight: bold; font-size: 0.9rem; }
-
-    main { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
-    .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
-    h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 15px; }
-
-    .input-group { margin-bottom: 15px; }
-    label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #8b949e; }
-    input[type="text"] { width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid var(--border); border-radius: 4px; color: #fff; font-family: monospace; font-size: 0.85rem; }
-
-    .actions { display: flex; flex-direction: column; gap: 10px; }
-    .btn { padding: 10px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; color: #fff; background: #21262d; border: 1px solid var(--border); text-align: left; transition: 0.2s; }
-    .btn:hover:not(:disabled) { background: #30363d; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--primary); border-color: transparent; }
-    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn-danger { background: var(--danger); border-color: transparent; }
-
-    .step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: #0d1117; margin-bottom: 10px; position: relative; overflow: hidden; }
-    .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; background: #21262d; border: 1px solid var(--border); font-size: 0.85rem; }
-    .step-icon.running { border-color: var(--running); color: var(--running); }
-    .step-icon.done { background: var(--primary); border-color: var(--primary); color: #fff; }
-    .step-icon.error { background: var(--danger); border-color: var(--danger); color: #fff; }
-
-    .step-content { flex: 1; z-index: 1; }
-    .step-title { font-weight: 600; font-size: 0.95rem; }
-    .step-message { font-size: 0.8rem; color: #8b949e; margin-top: 2px; }
-
-    .step-progress-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--blue); transition: width 0.3s ease; }
-
-    .logs-container { margin-top: 20px; background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 10px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
-    .log-entry { margin-bottom: 4px; }
-    .log-time { color: #8b949e; margin-right: 8px; }
-    .log-entry.success { color: #56d364; }
-    .log-entry.error { color: #f85149; }
-    .log-entry.warning { color: #e3b341; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header>
     <h1>Auto-Scaffold GUI</h1>
-    <span id="connStatus" style="color: #f85149;">● Connecting...</span>
+    <span class="status-badge" id="connStatus">● Connected</span>
   </header>
-
   <main>
-    <div class="panel">
+    <aside class="panel">
       <h2>Project</h2>
       <div class="input-group">
         <label for="folder">Folder Path</label>
-        <input type="text" id="folder" value="D:\kkh\Auto-Scaffold-main\Auto-S" placeholder="Absolute project path" />
+        <input type="text" id="folder" placeholder="C:\Users\You\Project" value="">
       </div>
-
       <div class="actions">
-        <button id="btnScan" class="btn btn-primary" onclick="runScan()">🔍 Scan Project</button>
-        <button id="btnGenTests" class="btn" onclick="runGenerateTests()">📝 Generate Tests</button>
-        <button id="btnRunTests" class="btn" onclick="runTests()">▶ Run Tests</button>
-        <button id="btnPropose" class="btn" onclick="runPropose()">🔧 Propose Fixes</button>
-        <button id="btnPipeline" class="btn btn-primary" onclick="runPipeline()">⚡ Full Pipeline</button>
-        <button id="btnStop" class="btn btn-danger" onclick="stopAll()" disabled>⏹ Stop</button>
+        <button class="btn btn-primary" id="btnScan" onclick="runScan()">🔍 Scan Project</button>
+        <button class="btn btn-secondary" id="btnGenTests" onclick="runGenerateTests()" disabled>🧪 Generate Tests</button>
+        <button class="btn btn-secondary" id="btnRunTests" onclick="runTests()" disabled>▶ Run Tests</button>
+        <button class="btn btn-secondary" id="btnPropose" onclick="runPropose()" disabled>🔧 Propose Fixes</button>
+        <button class="btn btn-primary" id="btnPipeline" onclick="runPipeline()" disabled>⚡ Full Pipeline</button>
+        <button class="btn btn-danger" id="btnStop" onclick="stopAll()" disabled>⏹ Stop</button>
       </div>
-    </div>
-
-    <div class="panel">
+    </aside>
+    <section class="panel progress-section">
       <h2>Progress</h2>
-
-      <div class="step" data-step="1">
-        <div class="step-icon pending">1</div>
-        <div class="step-content">
-          <div class="step-title">Scan</div>
-          <div class="step-message">Detect language & parse AST</div>
+      <div id="steps">
+        <div class="step" data-step="scan">
+          <div class="step-icon pending">1</div>
+          <div class="step-content">
+            <div class="step-title">Scan</div>
+            <div class="step-message">Detect language & parse AST</div>
+            <div class="step-progress"><div class="step-progress-bar" style="width: 0%"></div></div>
+          </div>
         </div>
-        <div class="step-progress-bar" style="width: 0%;"></div>
-      </div>
-
-      <div class="step" data-step="2">
-        <div class="step-icon pending">2</div>
-        <div class="step-content">
-          <div class="step-title">Generate Tests</div>
-          <div class="step-message">Create test files</div>
+        <div class="step" data-step="generate">
+          <div class="step-icon pending">2</div>
+          <div class="step-content">
+            <div class="step-title">Generate Tests</div>
+            <div class="step-message">Create test files</div>
+            <div class="step-progress"><div class="step-progress-bar" style="width: 0%"></div></div>
+          </div>
         </div>
-        <div class="step-progress-bar" style="width: 0%;"></div>
-      </div>
-
-      <div class="step" data-step="3">
-        <div class="step-icon pending">3</div>
-        <div class="step-content">
-          <div class="step-title">Run Tests</div>
-          <div class="step-message">Execute test suite</div>
+        <div class="step" data-step="run">
+          <div class="step-icon pending">3</div>
+          <div class="step-content">
+            <div class="step-title">Run Tests</div>
+            <div class="step-message">Execute test suite</div>
+            <div class="step-progress"><div class="step-progress-bar" style="width: 0%"></div></div>
+          </div>
         </div>
-        <div class="step-progress-bar" style="width: 0%;"></div>
-      </div>
-
-      <div class="step" data-step="4">
-        <div class="step-icon pending">4</div>
-        <div class="step-content">
-          <div class="step-title">Propose Fixes</div>
-          <div class="step-message">AI generates fix proposals</div>
+        <div class="step" data-step="propose">
+          <div class="step-icon pending">4</div>
+          <div class="step-content">
+            <div class="step-title">Propose Fixes</div>
+            <div class="step-message">AI generates fix proposals</div>
+            <div class="step-progress"><div class="step-progress-bar" style="width: 0%"></div></div>
+          </div>
         </div>
-        <div class="step-progress-bar" style="width: 0%;"></div>
-      </div>
-
-      <div class="step" data-step="5">
-        <div class="step-icon pending">5</div>
-        <div class="step-content">
-          <div class="step-title">Review</div>
-          <div class="step-message">Approve or reject proposals</div>
+        <div class="step" data-step="review">
+          <div class="step-icon pending">5</div>
+          <div class="step-content">
+            <div class="step-title">Review</div>
+            <div class="step-message">Approve or reject proposals</div>
+            <div class="step-progress"><div class="step-progress-bar" style="width: 0%"></div></div>
+          </div>
         </div>
-        <div class="step-progress-bar" style="width: 0%;"></div>
       </div>
-
-      <div id="logs" class="logs-container"></div>
-    </div>
+      <div class="logs" id="logs"></div>
+    </section>
   </main>
-
   <script src="app.js"></script>
 </body>
 </html>

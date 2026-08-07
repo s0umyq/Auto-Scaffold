@@ -1,263 +1,147 @@
-let ws = null;
-let currentProposals = [];
+const ws = new WebSocket(`ws://${location.host}/ws`);
+const logs = document.getElementById('logs');
+const steps = document.querySelectorAll('.step');
+let currentPipeline = false;
+let abortController = null;
 
-function updateStatusUI(connected) {
-  const statusElement = document.getElementById('ws-status') || document.querySelector('.connection-status');
-  if (statusElement) {
-    statusElement.textContent = connected ? '● Connected' : '● Connecting...';
-    statusElement.style.color = connected ? '#4ade80' : '#f87171';
-  } else {
-    document.querySelectorAll('span').forEach(el => {
-      if (el.textContent.includes('Connect')) {
-        el.textContent = connected ? '● Connected' : '● Connecting...';
-        el.style.color = connected ? '#4ade80' : '#f87171';
-      }
-    });
-  }
+ws.onopen = () => log('Connected to server', 'success');
+ws.onclose = () => { document.getElementById('connStatus').textContent = '● Disconnected'; document.getElementById('connStatus').style.color = '#f85149'; };
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.type === 'progress') handleProgress(msg);
+};
+
+function log(msg, type = 'info') {
+  const time = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = `log-entry ${type}`;
+  div.innerHTML = `<span class="log-time">${time}</span><span>${msg}</span>`;
+  logs.appendChild(div);
+  logs.scrollTop = logs.scrollHeight;
 }
 
-function connectWS() {
-  const wsUrl = "ws://127.0.0.1:8765/ws";
+function handleProgress(msg) {
+  const stepEl = document.querySelector(`.step[data-step="${msg.step}"]`);
+  if (!stepEl) return;
+  const icon = stepEl.querySelector('.step-icon');
+  const bar = stepEl.querySelector('.step-progress-bar');
+  const title = stepEl.querySelector('.step-message');
 
-  try {
-    if (ws) {
-      ws.onclose = null;
-      ws.close();
-    }
-
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      updateStatusUI(true);
-      log('WebSocket connected cleanly', 'success');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'progress') {
-          updateStepUI(data.step, data.message);
-          log(`Step ${data.step}: ${data.message}`, data.message.includes('Error') ? 'error' : 'info');
-        }
-      } catch (e) {}
-    };
-
-    ws.onerror = () => updateStatusUI(false);
-    ws.onclose = () => {
-      updateStatusUI(false);
-      setTimeout(connectWS, 2000);
-    };
-  } catch (e) {
-    updateStatusUI(false);
-    setTimeout(connectWS, 2000);
-  }
-}
-
-function updateStepUI(stepNum, message) {
-  // Find step container by attribute or numeric step badge
-  let stepCard = document.querySelector(`[data-step="${stepNum}"]`);
-
-  if (!stepCard) {
-    const allCards = document.querySelectorAll('.step-card, .progress-item, div');
-    allCards.forEach(card => {
-      const text = card.textContent || '';
-      if (text.includes(String(stepNum)) && (text.includes('Scan') || text.includes('Generate') || text.includes('Run') || text.includes('Propose') || text.includes('Review'))) {
-        stepCard = card;
-      }
-    });
-  }
-
-  if (!stepCard) return;
-
-  // Locate description paragraph inside card
-  const desc = stepCard.querySelector('.step-desc, p, small') || stepCard;
-  if (desc && desc !== stepCard) {
-    desc.textContent = message;
-  }
-
-  stepCard.classList.remove('running', 'done', 'error');
-
-  const lowerMsg = message.toLowerCase();
-  if (lowerMsg.includes('failed') || lowerMsg.includes('error')) {
-    stepCard.classList.add('error');
-    stepCard.style.borderLeft = '4px solid #f87171';
-  } else if (
-    lowerMsg.includes('complete') || 
-    lowerMsg.includes('passed') || 
-    lowerMsg.includes('generated') || 
-    lowerMsg.includes('ready') ||
-    lowerMsg.includes('patched')
-  ) {
-    stepCard.classList.add('done');
-    stepCard.style.borderLeft = '4px solid #4ade80';
-    
-    const badge = stepCard.querySelector('.step-number, div');
-    if (badge) badge.style.backgroundColor = '#16a34a';
+  if (msg.message.includes('Complete') || msg.message.includes('pass') || msg.message.includes('Done')) {
+    icon.className = 'step-icon done'; bar.style.width = '100%';
+  } else if (msg.message.includes('Error') || msg.message.includes('Failed')) {
+    icon.className = 'step-icon error'; bar.style.width = '0%';
   } else {
-    stepCard.classList.add('running');
-    stepCard.style.borderLeft = '4px solid #38bdf8';
+    icon.className = 'step-icon running'; bar.style.width = '50%';
   }
+  title.textContent = msg.message;
+  log(`${msg.step}: ${msg.message}`, msg.message.includes('Error') ? 'error' : 'info');
 }
 
 function resetSteps() {
-  document.querySelectorAll('[data-step]').forEach(card => {
-    card.classList.remove('running', 'done', 'error');
-    card.style.borderLeft = 'none';
+  steps.forEach(s => {
+    s.querySelector('.step-icon').className = 'step-icon pending';
+    s.querySelector('.step-progress-bar').style.width = '0%';
   });
-  const container = document.getElementById('proposals-container');
-  if (container) container.style.display = 'none';
-}
-
-function log(msg, type = 'info') {
-  const consoleBox = document.getElementById('console') || document.getElementById('logs') || document.querySelector('.console-box');
-  if (!consoleBox) return;
-
-  const time = new Date().toLocaleTimeString();
-  const entry = document.createElement('div');
-  entry.style.fontFamily = 'monospace';
-  entry.style.fontSize = '12px';
-  entry.style.marginBottom = '4px';
-
-  if (type === 'error') entry.style.color = '#f87171';
-  else if (type === 'success') entry.style.color = '#4ade80';
-  else if (type === 'warning') entry.style.color = '#fbbf24';
-  else entry.style.color = '#cbd5e1';
-
-  entry.textContent = `[${time}] ${msg}`;
-  consoleBox.appendChild(entry);
-  consoleBox.scrollTop = consoleBox.scrollHeight;
-}
-
-function getFolder() {
-  const input = document.getElementById('folder-path') || document.getElementById('folderPath') || document.querySelector('input[type="text"]');
-  return input ? input.value.trim() : '';
+  logs.innerHTML = '';
 }
 
 function setButtons(disabled) {
-  document.querySelectorAll('button:not(#stop-btn)').forEach(btn => btn.disabled = disabled);
-}
-
-async function api(endpoint, payload) {
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+  ['btnScan','btnGenTests','btnRunTests','btnPropose','btnPipeline'].forEach(id => {
+    document.getElementById(id).disabled = disabled;
   });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ detail: 'API Request Failed' }));
-    throw new Error(err.detail || 'API Request Failed');
-  }
-  return response.json();
+  document.getElementById('btnStop').disabled = !disabled;
 }
 
-function renderProposals(proposals) {
-  currentProposals = proposals || [];
-  let container = document.getElementById('proposals-container');
-  
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'proposals-container';
-    const reviewCard = document.querySelector('[data-step="5"]') || document.body;
-    reviewCard.appendChild(container);
-  }
-
-  container.style.display = 'block';
-
-  if (!proposals || proposals.length === 0) {
-    container.innerHTML = '<div style="color: #94a3b8; margin-top: 10px;">No proposals.</div>';
-    return;
-  }
-
-  container.innerHTML = proposals.map((p, idx) => `
-    <div id="proposal-card-${p.id}" style="margin-top: 15px; padding: 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px;">
-      <h4 style="color: #38bdf8; margin: 0 0 8px 0; font-size: 14px;">📁 Proposed Fix: ${p.target_file}</h4>
-      <pre style="background: #0f172a; color: #4ade80; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; overflow-x: auto; margin: 0;"><code>${p.diff}</code></pre>
-      <div style="margin-top: 10px; display: flex; gap: 8px;">
-        <button style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="approveFix('${p.id}', '${p.target_file}', ${idx})">Approve Fix</button>
-        <button style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="rejectFix('${p.id}')">Reject</button>
-      </div>
-    </div>
-  `).join('');
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body), signal: abortController?.signal
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
-async function approveFix(propId, targetFile, index) {
-  const folder = getFolder();
-  if (!folder) return alert("Folder path is required!");
+function getFolder() { return document.getElementById('folder').value.trim(); }
 
-  const proposal = currentProposals[index];
-  if (!proposal) return;
-
-  setButtons(true);
+async function runScan() {
+  const folder = getFolder(); if (!folder) return alert('Enter folder path');
+  resetSteps(); setButtons(true); abortController = new AbortController();
   try {
-    const res = await api('/api/apply-fix', {
-      folder: folder,
-      target_file: targetFile,
-      diff: proposal.diff
-    });
-
-    log(res.message, 'success');
-    const card = document.getElementById(`proposal-card-${propId}`);
-    if (card) card.remove();
-
-  } catch (e) {
-    log(`Failed to apply fix: ${e.message}`, 'error');
-  } finally {
-    setButtons(false);
-  }
+    const res = await api('/api/scan', { folder });
+    log(`Language: ${res.language}, PM: ${res.package_manager}, FW: ${res.test_framework}`, 'success');
+    document.getElementById('btnGenTests').disabled = false;
+    document.getElementById('btnRunTests').disabled = false;
+    document.getElementById('btnPropose').disabled = false;
+    document.getElementById('btnPipeline').disabled = false;
+  } catch (e) { log(e.message, 'error'); }
+  setButtons(false);
 }
 
-function rejectFix(propId) {
-  const card = document.getElementById(`proposal-card-${propId}`);
-  if (card) card.remove();
-  log(`Proposal ${propId} rejected`, 'error');
-}
-
-async function runStep(endpoint) {
-  const folder = getFolder();
-  if (!folder) return alert('Enter folder path');
-  setButtons(true);
+async function runGenerateTests() {
+  const folder = getFolder(); if (!folder) return;
+  resetSteps(); setButtons(true); abortController = new AbortController();
   try {
-    const res = await api(endpoint, { folder });
-    if (res.proposals) renderProposals(res.proposals);
-  } catch (e) {
-    log(e.message, 'error');
-  } finally {
-    setButtons(false);
-  }
+    await api('/api/generate-tests', { folder });
+    log('Tests generated', 'success');
+  } catch (e) { log(e.message, 'error'); }
+  setButtons(false);
+}
+
+async function runTests() {
+  const folder = getFolder(); if (!folder) return;
+  resetSteps(); setButtons(true); abortController = new AbortController();
+  try {
+    await api('/api/run-tests', { folder });
+    log('Tests completed', 'success');
+  } catch (e) { log(e.message, 'error'); }
+  setButtons(false);
+}
+
+async function runPropose() {
+  const folder = getFolder(); if (!folder) return;
+  resetSteps(); setButtons(true); abortController = new AbortController();
+  try {
+    const res = await api('/api/propose-fixes', { folder });
+    log(`${res.approved} approved, ${res.applied} applied`, 'success');
+  } catch (e) { log(e.message, 'error'); }
+  setButtons(false);
 }
 
 async function runPipeline() {
-  const folder = getFolder();
-  if (!folder) return alert('Enter folder path');
-  
-  resetSteps();
-  setButtons(true);
-
+  const folder = getFolder(); if (!folder) return;
+  resetSteps(); setButtons(true); currentPipeline = true; abortController = new AbortController();
   try {
     const res = await api('/api/pipeline', { folder });
-    if (res.proposals && res.proposals.length > 0) {
-      log(`Pipeline generated ${res.proposals.length} proposal(s).`, 'warning');
-      renderProposals(res.proposals);
-    } else {
-      log('All tests passed!', 'success');
-    }
-  } catch (e) {
-    log(e.message, 'error');
-  } finally {
-    setButtons(false);
-  }
+    if (res.proposals_count > 0) showProposals(res.proposals, folder);
+    else log('All tests pass!', 'success');
+  } catch (e) { log(e.message, 'error'); }
+  setButtons(false); currentPipeline = false;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  connectWS();
-
-  const buttons = Array.from(document.querySelectorAll('button'));
-  buttons.forEach(btn => {
-    const text = btn.textContent.trim().toLowerCase();
-    if (text.includes('scan')) btn.onclick = () => runStep('/api/scan');
-    else if (text.includes('generate')) btn.onclick = () => runStep('/api/generate-tests');
-    else if (text.includes('run tests')) btn.onclick = () => runStep('/api/run-tests');
-    else if (text.includes('propose')) btn.onclick = () => runStep('/api/propose-fixes');
-    else if (text.includes('pipeline')) btn.onclick = runPipeline;
+function showProposals(proposals, folder) {
+  const container = document.createElement('div');
+  container.className = 'panel';
+  container.innerHTML = '<h2>Fix Proposals</h2><div class="proposals"></div>';
+  const list = container.querySelector('.proposals');
+  proposals.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'proposal';
+    div.innerHTML = `<div class="proposal-header"><span class="proposal-file">${p.target_file}</span><div class="proposal-actions"><button class="btn btn-primary" onclick="applyOne('${p.id}','${folder}')">Apply</button><button class="btn btn-danger" onclick="rejectOne('${p.id}','${folder}')">Reject</button></div></div><div class="proposal-diff">${escapeHtml(p.diff)}</div>`;
+    list.appendChild(div);
   });
-});
+  document.querySelector('main').appendChild(container);
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>')
+    .replace(/\+(.+)/g, '<span class="diff-add">+$1</span>')
+    .replace(/\-(.+)/g, '<span class="diff-remove">-$1</span>');
+}
+
+function stopAll() {
+  if (abortController) abortController.abort();
+  currentPipeline = false;
+  log('Stopped', 'warning');
+  setButtons(false);
+}

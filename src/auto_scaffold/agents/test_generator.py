@@ -7,7 +7,6 @@ Uses core tier (NVIDIA -> OpenRouter) for test logic, planning tier for framewor
 from __future__ import annotations
 
 import logging
-import re
 from pathlib import Path
 
 from auto_scaffold.models import ClassInfo, CodebaseSummary, FileSummary, FunctionInfo
@@ -25,16 +24,13 @@ Package Manager: {package_manager}
 Codebase Summary:
 {summary}
 
-Framework Idioms & Conventions:
-{idioms}
-
 Requirements:
-- Generate REAL, RUNNABLE test files (not scenarios or pseudocode)
+- Generate REAL, RUNNABLE test files (not scenarios)
 - Use {test_framework} conventions and best practices
 - Test public functions and classes
 - Include edge cases and error conditions
 - Follow the project's existing test patterns if any exist
-- Output ONLY the raw executable test file content, no markdown code blocks or explanations
+- Output ONLY the test file content, no explanations
 
 Target file: {target_file}
 Functions to test:
@@ -56,24 +52,7 @@ Include:
 - Mocking approaches
 - Async testing patterns (if applicable)
 
-Respond with concise JSON or bullet points."""
-
-
-def _clean_llm_code_output(raw_output: str) -> str:
-    """Strips markdown code fences from the LLM output."""
-    cleaned = raw_output.strip()
-    # Match ```lang ... ``` blocks if present
-    match = re.search(r"```(?:\w+)?\n(.*?)```", cleaned, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    
-    # Fallback inline fence removal
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```[a-zA-Z]*\n?", "", cleaned)
-    if cleaned.endswith("```"):
-        cleaned = re.sub(r"\n?```$", "", cleaned)
-        
-    return cleaned.strip()
+Respond with concise JSON only."""
 
 
 class TestGenerator:
@@ -101,25 +80,21 @@ class TestGenerator:
         functions_desc = self._format_functions(file_summary.functions)
         classes_desc = self._format_classes(file_summary.classes)
 
-        # Get framework-specific idioms from planning tier and pass them into the main prompt
-        idioms = await self._get_framework_idioms(summary.language, summary.test_framework)
+        # Get framework-specific idioms from planning tier
+        _ = await self._get_framework_idioms(summary.language, summary.test_framework)
 
         prompt = TEST_GEN_PROMPT.format(
             language=summary.language,
             test_framework=summary.test_framework,
             package_manager=summary.package_manager,
             summary=self._format_summary(summary),
-            idioms=idioms if idioms else "None",
             target_file=file_summary.path,
             functions=functions_desc,
             classes=classes_desc,
         )
 
         try:
-            raw_response = await call_llm(prompt, "core")
-            if not raw_response:
-                return None
-            return _clean_llm_code_output(raw_response)
+            return await call_llm(prompt, "core")
         except Exception as e:
             logger.error("Test generation failed for %s: %s", file_summary.path, e)
             return None
@@ -131,8 +106,7 @@ class TestGenerator:
         )
         try:
             return await call_llm(prompt, "planning")
-        except Exception as e:
-            logger.warning("Failed to fetch framework idioms: %s", e)
+        except Exception:
             return ""
 
     def _format_summary(self, summary: CodebaseSummary) -> str:
