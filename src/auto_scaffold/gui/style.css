@@ -1,0 +1,73 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0d1117; color: #e6edf3;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+header {
+  background: #161b22; border-bottom: 1px solid #30363d;
+  padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+}
+header h1 { font-size: 1.5rem; font-weight: 600; color: #58a6ff; }
+.status-badge {
+  padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem;
+  background: #238636; color: white;
+}
+main { flex: 1; padding: 2rem; display: grid; grid-template-columns: 320px 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; width: 100%; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+.panel {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+  padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+}
+.panel h2 { font-size: 1rem; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
+.input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+label { font-size: 0.875rem; color: #8b949e; }
+input[type="text"] {
+  background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+  padding: 0.75rem; color: #e6edf3; font-family: monospace; font-size: 0.875rem;
+}
+input[type="text"]:focus { outline: none; border-color: #58a6ff; }
+.btn {
+  padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-primary { background: #238636; color: white; }
+.btn-primary:hover { background: #2ea043; }
+.btn-primary:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+.btn-secondary { background: #30363d; color: #e6edf3; border: 1px solid #30363d; }
+.btn-secondary:hover { background: #21262d; }
+.btn-danger { background: #da3633; color: white; }
+.btn-danger:hover { background: #f85149; }
+.actions { display: flex; flex-direction: column; gap: 0.75rem; }
+.progress-section { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+.step { padding: 1rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+  display: flex; align-items: center; gap: 1rem; min-height: 60px; }
+.step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+.step-icon.pending { background: #30363d; color: #8b949e; }
+.step-icon.running { background: #1f6feb; color: white; animation: pulse 1.5s infinite; }
+.step-icon.done { background: #238636; color: white; }
+.step-icon.error { background: #da3633; color: white; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.step-content { flex: 1; }
+.step-title { font-weight: 500; margin-bottom: 0.25rem; }
+.step-message { font-size: 0.875rem; color: #8b949e; }
+.step-progress { width: 100%; height: 4px; background: #30363d; border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
+.step-progress-bar { height: 100%; background: #238636; border-radius: 2px; transition: width 0.3s; }
+.logs { flex: 1; min-height: 200px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.8rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
+.log-entry { display: flex; gap: 0.5rem; color: #8b949e; }
+.log-entry.info { color: #58a6ff; }
+.log-entry.success { color: #3fb950; }
+.log-entry.error { color: #f85149; }
+.log-entry.warning { color: #d29922; }
+.log-time { color: #484f58; }
+.proposals { display: flex; flex-direction: column; gap: 0.75rem; }
+.proposal { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; }
+.proposal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.proposal-file { font-family: monospace; font-size: 0.875rem; color: #58a6ff; }
+.proposal-actions { display: flex; gap: 0.5rem; }
+.proposal-diff { background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 0.75rem; font-family: monospace; font-size: 0.75rem; max-height: 200px; overflow: auto; white-space: pre-wrap; }
+.diff-add { color: #3fb950; }
+.diff-remove { color: #f85149; }
+.hidden { display: none !important; }
+.empty-state { text-align: center; color: #484f58; padding: 2rem; }
